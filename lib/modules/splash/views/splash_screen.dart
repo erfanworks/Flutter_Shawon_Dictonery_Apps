@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _bootstrap() async {
     final prefs = await SharedPreferences.getInstance();
     final hasOnboarded = prefs.getBool(_onboardedKey) ?? false;
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
     Get.offNamed(hasOnboarded ? AppRoutes.mainNavScreen : AppRoutes.onboardingScreen);
   }
