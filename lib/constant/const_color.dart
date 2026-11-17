@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Static, compile-time color tokens.
-/// Required by the shared generic widgets (CustomTextFormField,
-/// CustomElevatedButton) which use `const` constructors internally.
-/// Dynamic light/dark theming for the rest of the app lives in
-/// `core/theme/app_colors.dart` (AppColors), which is reactive to theme mode.
+/// Static, compile-time color tokens for legacy shared widgets that need
+/// `const` defaults ([CustomTextFormField], [CustomElevatedButton]).
+/// App UI theming uses `core/theme/app_colors.dart` + [ThemeController].
 class ConstColor {
   ConstColor._();
 
