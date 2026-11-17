@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/theme_rebuild.dart';
 import '../../../constant/const_string.dart';
 import '../../../data/models/word_entry.dart';
 import '../../../routes/app_routes.dart';
@@ -24,61 +25,66 @@ class HomeSearchScreen extends GetView<HomeSearchController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgPaper,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(AppSpacing.s5.w, AppSpacing.s3.h, AppSpacing.s5.w, AppSpacing.s2.h),
-              child: Text(ConstString.appName, style: AppTypography.headwordLg()),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.s5.w),
-              child: _SearchBar(controller: controller),
-            ),
-            SizedBox(height: AppSpacing.s3.h),
-            Expanded(
-              child: Obx(() {
-                switch (controller.status.value) {
-                  case SearchStatus.idle:
-                    return _HomeContent(controller: controller, onOpenWord: _openWord);
-                  case SearchStatus.loading:
-                    return ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: AppSpacing.s2.h),
-                      itemCount: 6,
-                      itemBuilder: (_, __) => const WordResultRowSkeleton(),
-                    );
-                  case SearchStatus.empty:
-                    return _NoResults(controller: controller, onOpenWord: _openWord);
-                  case SearchStatus.results:
-                    return ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s3.w),
-                      itemCount: controller.results.length,
-                      itemBuilder: (context, index) {
-                        final headword = controller.results[index];
-                        final cached = controller.peekCached(headword);
-                        if (cached != null) {
-                          return WordResultRow(
-                            entry: cached,
-                            highlighted: index == 0,
-                            onTap: () => _openWord(headword),
-                          );
-                        }
-                        return HeadwordRow(
-                          headword: headword,
-                          highlighted: index == 0,
-                          onTap: () => _openWord(headword),
+    return ThemeRebuild(
+      builder: (context) {
+        final colors = AppColors.of(context);
+        return Scaffold(
+          backgroundColor: colors.bgPaper,
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(AppSpacing.s5.w, AppSpacing.s3.h, AppSpacing.s5.w, AppSpacing.s2.h),
+                  child: Text(ConstString.appName, style: AppTypography.headwordLg(color: colors.ink900)),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.s5.w),
+                  child: _SearchBar(controller: controller),
+                ),
+                SizedBox(height: AppSpacing.s3.h),
+                Expanded(
+                  child: Obx(() {
+                    switch (controller.status.value) {
+                      case SearchStatus.idle:
+                        return _HomeContent(controller: controller, onOpenWord: _openWord);
+                      case SearchStatus.loading:
+                        return ListView.builder(
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.s2.h),
+                          itemCount: 6,
+                          itemBuilder: (_, __) => const WordResultRowSkeleton(),
                         );
-                      },
-                    );
-                }
-              }),
+                      case SearchStatus.empty:
+                        return _NoResults(controller: controller, onOpenWord: _openWord);
+                      case SearchStatus.results:
+                        return ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.s3.w),
+                          itemCount: controller.results.length,
+                          itemBuilder: (context, index) {
+                            final headword = controller.results[index];
+                            final cached = controller.peekCached(headword);
+                            if (cached != null) {
+                              return WordResultRow(
+                                entry: cached,
+                                highlighted: index == 0,
+                                onTap: () => _openWord(headword),
+                              );
+                            }
+                            return HeadwordRow(
+                              headword: headword,
+                              highlighted: index == 0,
+                              onTap: () => _openWord(headword),
+                            );
+                          },
+                        );
+                    }
+                  }),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -89,6 +95,7 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Focus(
       child: Builder(
         builder: (context) {
@@ -96,25 +103,26 @@ class _SearchBar extends StatelessWidget {
           return AnimatedContainer(
             duration: AppMotion.fast,
             decoration: BoxDecoration(
-              color: hasFocus ? AppColors.bgPaperRaised : AppColors.bgPaperSunken,
+              color: hasFocus ? colors.bgPaperRaised : colors.bgPaperSunken,
               borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: hasFocus ? AppColors.marigold : Colors.transparent, width: 1),
+              border: Border.all(color: hasFocus ? colors.marigold : Colors.transparent, width: 1),
               boxShadow: hasFocus
-                  ? [BoxShadow(color: AppColors.ink900.withAlpha(10), blurRadius: 6, offset: const Offset(0, 2))]
+                  ? [BoxShadow(color: colors.ink900.withAlpha(10), blurRadius: 6, offset: const Offset(0, 2))]
                   : null,
             ),
             child: Row(
               children: [
                 SizedBox(width: AppSpacing.s3.w),
-                Icon(Icons.search_rounded, size: 20.sp, color: AppColors.ink500),
+                Icon(Icons.search_rounded, size: 20.sp, color: colors.ink500),
                 Expanded(
                   child: TextField(
                     controller: controller.textController,
                     onChanged: controller.onQueryChanged,
-                    style: AppTypography.bodyLg(),
+                    style: AppTypography.bodyLg(color: colors.ink900),
+                    cursorColor: colors.marigold,
                     decoration: InputDecoration(
                       hintText: ConstString.searchHint,
-                      hintStyle: AppTypography.bodyLg(color: AppColors.ink300),
+                      hintStyle: AppTypography.bodyLg(color: colors.ink300),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.s3.w, vertical: 14.h),
                     ),
@@ -123,7 +131,7 @@ class _SearchBar extends StatelessWidget {
                 Obx(
                   () => controller.query.value.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.close_rounded, size: 18.sp, color: AppColors.ink500),
+                          icon: Icon(Icons.close_rounded, size: 18.sp, color: colors.ink500),
                           onPressed: controller.clearQuery,
                         )
                       : SizedBox(width: AppSpacing.s2.w),
@@ -208,34 +216,35 @@ class _WordOfTheDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(AppSpacing.s4.w),
         decoration: BoxDecoration(
-          color: AppColors.bgPaperRaised,
+          color: colors.bgPaperRaised,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          boxShadow: [BoxShadow(color: AppColors.ink900.withAlpha(15), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: colors.ink900.withAlpha(15), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(ConstString.wordOfTheDay.toUpperCase(), style: AppTypography.labelMd(color: AppColors.marigold)),
+            Text(ConstString.wordOfTheDay.toUpperCase(), style: AppTypography.labelMd(color: colors.marigold)),
             SizedBox(height: AppSpacing.s2.h),
             Row(
               children: [
-                Text(entry.headword, style: AppTypography.headwordLg()),
+                Text(entry.headword, style: AppTypography.headwordLg(color: colors.ink900)),
                 SizedBox(width: AppSpacing.s2.w),
                 PosChip(partOfSpeech: entry.primaryPartOfSpeech),
               ],
             ),
             SizedBox(height: 4.h),
-            Text(entry.phonetic, style: AppTypography.monoPhonetic(color: AppColors.ink500)),
+            Text(entry.phonetic, style: AppTypography.monoPhonetic(color: colors.ink500)),
             SizedBox(height: AppSpacing.s2.h),
             Text(
               entry.previewDefinition,
-              style: AppTypography.bodyMd(color: AppColors.ink700),
+              style: AppTypography.bodyMd(color: colors.ink700),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -245,38 +254,40 @@ class _WordOfTheDayCard extends StatelessWidget {
     );
   }
 }
+
 class _IeltsPromoCard extends StatelessWidget {
   const _IeltsPromoCard();
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.ieltsHubScreen),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(AppSpacing.s4.w),
         decoration: BoxDecoration(
-          color: AppColors.sageDim,
+          color: colors.sageDim,
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
-            Icon(Icons.workspace_premium_rounded, size: 28.sp, color: AppColors.sage),
+            Icon(Icons.workspace_premium_rounded, size: 28.sp, color: colors.sage),
             SizedBox(width: AppSpacing.s3.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('IELTS Prep', style: AppTypography.h2()),
+                  Text('IELTS Prep', style: AppTypography.h2(color: colors.ink900)),
                   SizedBox(height: 2.h),
                   Text(
                     'Topic vocabulary, synonyms & Cambridge word bank',
-                    style: AppTypography.bodyMd(color: AppColors.ink500),
+                    style: AppTypography.bodyMd(color: colors.ink500),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 20.sp, color: AppColors.ink500),
+            Icon(Icons.chevron_right, size: 20.sp, color: colors.ink500),
           ],
         ),
       ),
@@ -291,15 +302,16 @@ class _ChipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.s3.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: AppColors.bgPaperSunken,
+          color: colors.bgPaperSunken,
           borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
-        child: Text(label, style: AppTypography.bodyMd(color: AppColors.ink700)),
+        child: Text(label, style: AppTypography.bodyMd(color: colors.ink700)),
       ),
     );
   }

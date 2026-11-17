@@ -1,32 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'app_color_scheme.dart';
+import 'app_theme_scope.dart';
+import 'theme_controller.dart';
 
+/// App-wide color accessors.
+///
+/// [ThemeController.isDark] is the source of truth (not [Get.isDarkMode]), so
+/// light / dark / system switches stay consistent.
 class AppColors {
   AppColors._();
 
-  static bool get _dark => Get.isDarkMode;
+  static AppColorScheme get _scheme {
+    if (Get.isRegistered<ThemeController>()) {
+      return Get.find<ThemeController>().isDark ? AppColorScheme.dark : AppColorScheme.light;
+    }
+    final context = Get.context;
+    if (context != null) {
+      final scope = context.getElementForInheritedWidgetOfExactType<AppThemeScope>()?.widget;
+      if (scope is AppThemeScope) return scope.colors;
+      final ext = Theme.of(context).extension<AppColorScheme>();
+      if (ext != null) return ext;
+    }
+    final platformDark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+    return platformDark ? AppColorScheme.dark : AppColorScheme.light;
+  }
+
+  /// Context-aware resolve — also registers an [AppThemeScope] dependency when present.
+  static AppColorScheme of(BuildContext context) {
+    final scope = AppThemeScope.maybeOf(context);
+    if (scope != null) return scope.colors;
+    if (Get.isRegistered<ThemeController>()) {
+      return Get.find<ThemeController>().isDark ? AppColorScheme.dark : AppColorScheme.light;
+    }
+    return Theme.of(context).extension<AppColorScheme>() ?? _scheme;
+  }
 
   // Surfaces
-  static Color get bgPaper => _dark ? const Color(0xFF12140F) : const Color(0xFFF6F5F1);
-  static Color get bgPaperRaised => _dark ? const Color(0xFF1A1D16) : const Color(0xFFFCFBF8);
-  static Color get bgPaperSunken => _dark ? const Color(0xFF21251C) : const Color(0xFFECE9E2);
+  static Color get bgPaper => _scheme.bgPaper;
+  static Color get bgPaperRaised => _scheme.bgPaperRaised;
+  static Color get bgPaperSunken => _scheme.bgPaperSunken;
 
   // Ink (text)
-  static Color get ink900 => _dark ? const Color(0xFFEDEEE8) : const Color(0xFF1C1E1A);
-  static Color get ink700 => _dark ? const Color(0xFFC9CCC0) : const Color(0xFF3A3D36);
-  static Color get ink500 => _dark ? const Color(0xFF8B9082) : const Color(0xFF6B6F66);
-  static Color get ink300 => _dark ? const Color(0xFF565A4E) : const Color(0xFFA6AA9F);
-  static Color get ink100 => _dark ? const Color(0xFF2A2E22) : const Color(0xFFDCDCD2);
+  static Color get ink900 => _scheme.ink900;
+  static Color get ink700 => _scheme.ink700;
+  static Color get ink500 => _scheme.ink500;
+  static Color get ink300 => _scheme.ink300;
+  static Color get ink100 => _scheme.ink100;
 
-  // Accents — primary: Forest green, secondary: warm Ochre, error: Brick
-  static Color get marigold => _dark ? const Color(0xFF4F9C74) : const Color(0xFF2F6E4F);
-  static Color get marigoldDim => _dark ? marigold.withAlpha(46) : const Color(0xFFDCEAE1);
-  static Color get sage => _dark ? const Color(0xFFE3A35E) : const Color(0xFFD98C3D);
-  static Color get sageDim => _dark ? sage.withAlpha(46) : const Color(0xFFF4E3CC);
-  static Color get brick => _dark ? const Color(0xFFD97A6C) : const Color(0xFFBE5B4D);
-  static Color get brickDim => _dark ? brick.withAlpha(46) : const Color(0xFFF3DCD4);
+  // Accents
+  static Color get marigold => _scheme.marigold;
+  static Color get marigoldDim => _scheme.marigoldDim;
+  static Color get sage => _scheme.sage;
+  static Color get sageDim => _scheme.sageDim;
+  static Color get brick => _scheme.brick;
+  static Color get brickDim => _scheme.brickDim;
 
-  // Fixed (theme independent) — used by AppSnackbar (always dark bg)
+  // Fixed (theme independent) — used by AppSnackbar / filled CTA labels
   static const Color inkPaperFixed = Color(0xFFF6F5F1);
   static const Color ink900Fixed = Color(0xFF1C1E1A);
 }

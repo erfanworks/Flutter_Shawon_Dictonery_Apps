@@ -47,8 +47,14 @@ class InitialBinding extends Bindings {
       permanent: true,
     );
 
-    Get.put(ThemeController(), permanent: true);
-    Get.put(TextScaleController(), permanent: true);
+    // ThemeController + TextScaleController are registered in main() so the
+    // first frame already has a correct theme before routes build.
+    if (!Get.isRegistered<ThemeController>()) {
+      Get.put(ThemeController(), permanent: true);
+    }
+    if (!Get.isRegistered<TextScaleController>()) {
+      Get.put(TextScaleController(), permanent: true);
+    }
     Get.put(VoiceService(), permanent: true);
   }
 }

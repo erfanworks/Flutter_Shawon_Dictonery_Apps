@@ -30,14 +30,15 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        color: raised ? AppColors.bgPaperRaised : Colors.transparent,
+        color: raised ? colors.bgPaperRaised : Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: raised ? AppColors.ink100 : Colors.transparent,
+            color: raised ? colors.ink100 : Colors.transparent,
             width: 1,
           ),
         ),
@@ -47,17 +48,18 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        foregroundColor: colors.ink900,
         automaticallyImplyLeading: false,
         centerTitle: centerTitle,
         titleSpacing: showBack ? 0 : 20.w,
         leading: showBack
             ? IconButton(
                 onPressed: onBack ?? () => Get.back(),
-                icon: Icon(Icons.arrow_back, size: 22.sp, color: AppColors.ink900),
+                icon: Icon(Icons.arrow_back, size: 22.sp, color: colors.ink900),
               )
             : null,
         title: title != null
-            ? Text(title!, style: AppTypography.h1(), maxLines: 1, overflow: TextOverflow.ellipsis)
+            ? Text(title!, style: AppTypography.h1(color: colors.ink900), maxLines: 1, overflow: TextOverflow.ellipsis)
             : null,
         actions: actions != null
             ? [...actions!, SizedBox(width: 8.w)]

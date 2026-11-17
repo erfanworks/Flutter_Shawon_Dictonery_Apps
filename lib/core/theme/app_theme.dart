@@ -1,31 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'app_color_scheme.dart';
 
 class AppTheme {
   AppTheme._();
 
   static ThemeData _build({required Brightness brightness}) {
-    final isDark = brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF12140F) : const Color(0xFFF6F5F1);
-    final primary = isDark ? const Color(0xFF4F9C74) : const Color(0xFF2F6E4F);
+    final colors = brightness == Brightness.dark ? AppColorScheme.dark : AppColorScheme.light;
+    final baseText = GoogleFonts.interTextTheme();
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      scaffoldBackgroundColor: scaffoldBg,
-      primaryColor: primary,
+      scaffoldBackgroundColor: colors.bgPaper,
+      primaryColor: colors.marigold,
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       fontFamily: GoogleFonts.inter().fontFamily,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primary,
+      extensions: <ThemeExtension<dynamic>>[colors],
+      colorScheme: ColorScheme(
         brightness: brightness,
-        surface: scaffoldBg,
+        primary: colors.marigold,
+        onPrimary: AppColorScheme.light.bgPaper,
+        secondary: colors.sage,
+        onSecondary: AppColorScheme.light.bgPaper,
+        error: colors.brick,
+        onError: AppColorScheme.light.bgPaper,
+        surface: colors.bgPaper,
+        onSurface: colors.ink900,
       ),
+      textTheme: baseText.apply(
+        bodyColor: colors.ink900,
+        displayColor: colors.ink900,
+      ),
+      primaryTextTheme: baseText.apply(
+        bodyColor: colors.ink900,
+        displayColor: colors.ink900,
+      ),
+      iconTheme: IconThemeData(color: colors.ink900),
       appBarTheme: AppBarTheme(
-        backgroundColor: scaffoldBg,
+        backgroundColor: colors.bgPaper,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: colors.ink900,
+        titleTextStyle: GoogleFonts.inter(
+          color: colors.ink900,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+        ),
+        iconTheme: IconThemeData(color: colors.ink900),
+      ),
+      dividerColor: colors.ink100,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colors.bgPaperRaised,
         surfaceTintColor: Colors.transparent,
       ),
       pageTransitionsTheme: const PageTransitionsTheme(

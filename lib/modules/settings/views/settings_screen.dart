@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/theme/theme_rebuild.dart';
 import '../../../core/theme/text_scale_controller.dart';
 import '../../../constant/const_string.dart';
 import '../../../widget/appbar/global_app_bar.dart';
@@ -18,68 +19,73 @@ class SettingsScreen extends GetView<SettingsController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgPaper,
-      appBar: const GlobalAppBar(title: ConstString.settingsTitle, showBack: false),
-      body: ListView(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.s2.h),
-        children: [
-          const _SectionHeader(ConstString.appearance),
-          Obx(
-            () => _SettingsRow(
-              label: ConstString.theme,
-              value: _themeLabel(controller.themeController.themeOption.value),
-              onTap: () => _openThemeSheet(context),
-            ),
+    return ThemeRebuild(
+      builder: (context) {
+        final colors = AppColors.of(context);
+        return Scaffold(
+          backgroundColor: colors.bgPaper,
+          appBar: const GlobalAppBar(title: ConstString.settingsTitle, showBack: false),
+          body: ListView(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.s2.h),
+            children: [
+              const _SectionHeader(ConstString.appearance),
+              Obx(
+                () => _SettingsRow(
+                  label: ConstString.theme,
+                  value: _themeLabel(controller.themeController.themeOption.value),
+                  onTap: () => _openThemeSheet(context),
+                ),
+              ),
+              const _SectionHeader(ConstString.reading),
+              Obx(
+                () => _SettingsRow(
+                  label: ConstString.textSize,
+                  value: _sizeLabel(controller.textScaleController.option.value),
+                  onTap: () => _openTextSizeSheet(context),
+                ),
+              ),
+              const _SectionHeader(ConstString.data),
+              _SettingsRow(
+                label: ConstString.clearSearchHistory,
+                destructive: true,
+                onTap: () async {
+                  final confirmed = await ConfirmBottomSheet.show(
+                    message: ConstString.clearHistoryConfirm,
+                    confirmLabel: ConstString.remove,
+                  );
+                  if (confirmed) controller.clearSearchHistory();
+                },
+              ),
+              _SettingsRow(
+                label: ConstString.clearAllFavorites,
+                destructive: true,
+                onTap: () async {
+                  final confirmed = await ConfirmBottomSheet.show(
+                    message: ConstString.removeAllFavorites.replaceAll('%s', 'your'),
+                    confirmLabel: ConstString.removeAll,
+                  );
+                  if (confirmed) controller.clearAllFavorites();
+                },
+              ),
+              const _SectionHeader(ConstString.about),
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) => _SettingsRow(
+                  label: ConstString.appVersion,
+                  value: snapshot.hasData ? snapshot.data!.version : '—',
+                  onTap: null,
+                ),
+              ),
+              _SettingsRow(label: ConstString.rateThisApp, onTap: () {}),
+              _SettingsRow(
+                label: ConstString.licenses,
+                onTap: () => showLicensePage(context: context, applicationName: ConstString.appName),
+              ),
+              SizedBox(height: AppSpacing.s8.h),
+            ],
           ),
-          const _SectionHeader(ConstString.reading),
-          Obx(
-            () => _SettingsRow(
-              label: ConstString.textSize,
-              value: _sizeLabel(controller.textScaleController.option.value),
-              onTap: () => _openTextSizeSheet(context),
-            ),
-          ),
-          const _SectionHeader(ConstString.data),
-          _SettingsRow(
-            label: ConstString.clearSearchHistory,
-            destructive: true,
-            onTap: () async {
-              final confirmed = await ConfirmBottomSheet.show(
-                message: ConstString.clearHistoryConfirm,
-                confirmLabel: ConstString.remove,
-              );
-              if (confirmed) controller.clearSearchHistory();
-            },
-          ),
-          _SettingsRow(
-            label: ConstString.clearAllFavorites,
-            destructive: true,
-            onTap: () async {
-              final confirmed = await ConfirmBottomSheet.show(
-                message: ConstString.removeAllFavorites.replaceAll('%s', 'your'),
-                confirmLabel: ConstString.removeAll,
-              );
-              if (confirmed) controller.clearAllFavorites();
-            },
-          ),
-          const _SectionHeader(ConstString.about),
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snapshot) => _SettingsRow(
-              label: ConstString.appVersion,
-              value: snapshot.hasData ? snapshot.data!.version : '—',
-              onTap: null,
-            ),
-          ),
-          _SettingsRow(label: ConstString.rateThisApp, onTap: () {}),
-          _SettingsRow(
-            label: ConstString.licenses,
-            onTap: () => showLicensePage(context: context, applicationName: ConstString.appName),
-          ),
-          SizedBox(height: AppSpacing.s8.h),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -109,12 +115,14 @@ class SettingsScreen extends GetView<SettingsController> {
 
   void _openThemeSheet(BuildContext context) {
     Get.bottomSheet(
-      _PickerSheet(
-        child: Obx(
-          () => AppSegmentedControl(
-            labels: const [ConstString.light, ConstString.dark, ConstString.system],
-            selectedIndex: AppThemeOption.values.indexOf(controller.themeController.themeOption.value),
-            onChanged: (i) => controller.themeController.setTheme(AppThemeOption.values[i]),
+      ThemeRebuild(
+        builder: (context) => _PickerSheet(
+          child: Obx(
+            () => AppSegmentedControl(
+              labels: const [ConstString.light, ConstString.dark, ConstString.system],
+              selectedIndex: AppThemeOption.values.indexOf(controller.themeController.themeOption.value),
+              onChanged: (i) => controller.themeController.setTheme(AppThemeOption.values[i]),
+            ),
           ),
         ),
       ),
@@ -124,26 +132,31 @@ class SettingsScreen extends GetView<SettingsController> {
 
   void _openTextSizeSheet(BuildContext context) {
     Get.bottomSheet(
-      _PickerSheet(
-        child: Column(
-          children: [
-            Obx(
-              () => AppSegmentedControl(
-                labels: const [ConstString.small, ConstString.defaultSize, ConstString.large, ConstString.xLarge],
-                selectedIndex: TextSizeOption.values.indexOf(controller.textScaleController.option.value),
-                onChanged: (i) => controller.textScaleController.setOption(TextSizeOption.values[i]),
-              ),
+      ThemeRebuild(
+        builder: (context) {
+          final colors = AppColors.of(context);
+          return _PickerSheet(
+            child: Column(
+              children: [
+                Obx(
+                  () => AppSegmentedControl(
+                    labels: const [ConstString.small, ConstString.defaultSize, ConstString.large, ConstString.xLarge],
+                    selectedIndex: TextSizeOption.values.indexOf(controller.textScaleController.option.value),
+                    onChanged: (i) => controller.textScaleController.setOption(TextSizeOption.values[i]),
+                  ),
+                ),
+                SizedBox(height: AppSpacing.s5.h),
+                Obx(() {
+                  final scale = controller.textScaleController.option.value.scale;
+                  return Text(
+                    'The quick fox reads clearly.',
+                    style: AppTypography.bodyLg(color: colors.ink900).copyWith(fontSize: 17.sp * scale),
+                  );
+                }),
+              ],
             ),
-            SizedBox(height: AppSpacing.s5.h),
-            Obx(() {
-              final scale = controller.textScaleController.option.value.scale;
-              return Text(
-                'The quick fox reads clearly.',
-                style: AppTypography.bodyLg().copyWith(fontSize: 17.sp * scale),
-              );
-            }),
-          ],
-        ),
+          );
+        },
       ),
       backgroundColor: Colors.transparent,
     );
@@ -156,10 +169,11 @@ class _PickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(AppSpacing.s5.w, AppSpacing.s3.h, AppSpacing.s5.w, AppSpacing.s8.h),
       decoration: BoxDecoration(
-        color: AppColors.bgPaperRaised,
+        color: colors.bgPaperRaised,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
       child: Column(
@@ -168,7 +182,10 @@ class _PickerSheet extends StatelessWidget {
           Container(
             width: 36.w,
             height: 4.h,
-            decoration: BoxDecoration(color: AppColors.ink100, borderRadius: const BorderRadius.all(Radius.circular(AppRadius.pill))),
+            decoration: BoxDecoration(
+              color: colors.ink100,
+              borderRadius: const BorderRadius.all(Radius.circular(AppRadius.pill)),
+            ),
           ),
           SizedBox(height: AppSpacing.s5.h),
           child,
@@ -184,9 +201,10 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(AppSpacing.s5.w, AppSpacing.s5.h, AppSpacing.s5.w, AppSpacing.s2.h),
-      child: Text(label.toUpperCase(), style: AppTypography.labelMd(color: AppColors.ink500)),
+      child: Text(label.toUpperCase(), style: AppTypography.labelMd(color: colors.ink500)),
     );
   }
 }
@@ -201,25 +219,26 @@ class _SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return InkWell(
       onTap: onTap,
       splashFactory: NoSplash.splashFactory,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.s5.w, vertical: AppSpacing.s4.h),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.ink100, width: 1))),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colors.ink100, width: 1))),
         child: Row(
           children: [
             Expanded(
               child: Text(
                 label,
-                style: AppTypography.bodyLg(color: destructive ? AppColors.brick : AppColors.ink900),
+                style: AppTypography.bodyLg(color: destructive ? colors.brick : colors.ink900),
               ),
             ),
             if (value != null) ...[
-              Text(value!, style: AppTypography.bodyMd(color: AppColors.ink500)),
+              Text(value!, style: AppTypography.bodyMd(color: colors.ink500)),
               SizedBox(width: AppSpacing.s2.w),
             ],
-            if (onTap != null) Icon(Icons.chevron_right, size: 18.sp, color: AppColors.ink300),
+            if (onTap != null) Icon(Icons.chevron_right, size: 18.sp, color: colors.ink300),
           ],
         ),
       ),
